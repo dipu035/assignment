@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+  <changeSet author="s.tibriz" id="01">
+    <sql>
+      INSERT INTO Product (id, name, current_price) VALUES (1, 'iPhone 11', 750.00);
+      INSERT INTO Product (id, name, current_price) VALUES (2, 'iPhone 11 Pro', 899.99);
+      INSERT INTO Product (id, name, current_price) VALUES (3, 'Samsung Galaxy S10', 699.99);
+      INSERT INTO Product (id, name, current_price) VALUES (4, 'Samsung Galaxy Fold', 1999.99);
+    </sql>
+  </changeSet>
+</databaseChangeLog>

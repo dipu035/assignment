@@ -1,0 +1,19 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: rabobank-assignment
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: rabobank-assignment
+    spec:
+      containers:
+        - name: rabobank-assignment
+          image: registry.gitlab.com/dipu007/rabobank-assignment
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+      imagePullSecrets:
+        - name: registry.gitlab.com

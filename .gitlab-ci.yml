@@ -1,0 +1,63 @@
+#
+# GitLab Build Pipeline
+#
+variables:
+  MAVEN_CLI_OPTS: '--batch-mode -Dmaven.repo.local=.m2/repository'
+
+before_script:
+  - echo "Start $(date)"
+
+after_script:
+  - echo "End $(date)"
+
+cache: # Cache Maven artfifacts on subsequent execution of Job.
+  paths:
+    - .m2/repository
+
+stages:
+  - build-application
+  - build-images
+  - deploy
+
+build-java:
+  stage: build-application
+  image: maven:3.6-jdk-11-slim
+  only:
+    - master
+  script:
+    - mvn $MAVEN_CLI_OPTS clean install
+  artifacts:
+    paths:
+      - ./target/*.jar
+    expire_in: 1 hour
+
+build-service-image:
+  stage: build-images
+  image: docker:19.03.1
+  only:
+    - master
+  variables:
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS_CERTDIR: "/certs"
+  services:
+    - docker:19.03.1-dind
+  script:
+    - docker login -u $CI_REGISTRY_USER -p rQgRWZRLZij1433Lbc-W $CI_REGISTRY
+    - docker build -t $CI_REGISTRY/dipu007/rabobank-assignment .
+    - docker push $CI_REGISTRY/dipu007/rabobank-assignment
+
+.deploy:
+  image: google/cloud-sdk
+  stage: deploy
+  script:
+    - echo "$service_account" > key.json # Google Cloud service account key
+    - gcloud auth activate-service-account --key-file key.json
+    - gcloud config set compute/zone europe-west2-a
+    - gcloud config set project onyx-course-252013
+    - gcloud config set container/use_client_certificate True
+    - gcloud container clusters get-credentials my-kube-cluster
+    - gcloud config unset container/use_client_certificate
+    - kubectl create clusterrolebinding serviceaccounts-cluster-admin --clusterrole=cluster-admin --group=system:serviceaccounts
+    - kubectl delete secret registry.gitlab.com
+    - kubectl create secret docker-registry registry.gitlab.com --docker-server=https://registry.gitlab.com --docker-username=$CI_REGISTRY_USER --docker-password=rQgRWZRLZij1433Lbc-W --docker-email=dipu035.mbstu@gmail.com
+    - kubectl apply -f deployment.yml
